@@ -28,7 +28,6 @@
    ```bash
    git clone <your-repo-url>
    cd nav-page
-````
 
 2.  **安装依赖**
 

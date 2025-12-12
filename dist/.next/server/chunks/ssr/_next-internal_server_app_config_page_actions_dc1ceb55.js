@@ -1,3 +1,0 @@
-module.exports=[12707,a=>{"use strict";var b=a.i(94495);a.s([],24041),a.i(24041),a.s(["00d49d2e4f06f48f2d54987e8ef9db00891bbb78f9",()=>b.logout,"00fa0bbb402a4fea3b9960d0f7b8d9d628fc9524b9",()=>b.getCategories,"40065bc5677d7898a0218afcd1686145a98b3e60de",()=>b.uploadIcon,"408958feafa9094f471d2d6cb5f1417a41494adb3e",()=>b.deleteCategory,"600c1e55a67c1e4a50b2c33a0b4a78d375871c246d",()=>b.addCategory,"6048981fbcb7c601d09919745dc6faa2c90e8879ce",()=>b.addSite,"6079a3b02bf4acd1ea43bbf4148ce8a7790ecffa3b",()=>b.deleteSite],12707)}];
-
-//# sourceMappingURL=_next-internal_server_app_config_page_actions_dc1ceb55.js.map

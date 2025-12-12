@@ -1,3 +1,0 @@
-module.exports=[9701,a=>{"use strict";var b=a.i(7997),c=a.i(5246);a.i(70396);var d=a.i(73727);async function e({children:a}){let e=(await (0,c.cookies)()).get("auth_token");return e&&e.value||(0,d.redirect)("/login"),(0,b.jsx)("div",{className:"min-h-screen bg-slate-50 dark:bg-slate-950",children:a})}a.s(["default",()=>e,"dynamic",0,"force-dynamic","revalidate",0,0])}];
-
-//# sourceMappingURL=src_app_config_layout_tsx_89190b74._.js.map

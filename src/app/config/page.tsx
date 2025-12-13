@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
-import { getCategories, addCategory, deleteCategory, addSite, deleteSite, uploadIcon, logout } from "@/lib/actions";
+// ✨ 引入 useRouter 和 checkAuthStatus
+import { useRouter } from "next/navigation";
+import { getCategories, addCategory, deleteCategory, addSite, deleteSite, uploadIcon, logout, checkAuthStatus } from "@/lib/actions";
 import { Category } from "@/types";
 import { Trash2, Plus, Upload, Loader2, Image as ImageIcon, LayoutGrid, LogOut, Globe, AlertCircle, X } from "lucide-react";
 import Image from "next/image";
@@ -12,6 +14,9 @@ type DeleteTarget =
   | null;
 
 export default function ConfigPage() {
+  // ✨ 初始化路由钩子
+  const router = useRouter();
+  
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
@@ -25,25 +30,43 @@ export default function ConfigPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { 
+    // ============================================================
+    // ✨✨✨ 核心修复：客户端身份双重检查 ✨✨✨
+    // ============================================================
+    const initPage = async () => {
+      // 1. 先问服务器：我登录了吗？
+      const isLoggedIn = await checkAuthStatus();
+      
+      if (!isLoggedIn) {
+        // 2. 没登录？立刻踢回登录页 (使用 replace 不留历史记录)
+        router.replace('/login');
+        return;
+      }
+
+      // 3. 登录了？才开始拉取数据
+      fetchData();
+    };
+
+    initPage();
+  }, []);
 
   const fetchData = async () => {
     try {
       const data = await getCategories();
-      // ✨ [修复] 确保数据绝对可用，防止 map 报错
       const safeData = Array.isArray(data) ? data : [];
       setCategories(safeData);
       
-      // 如果当前选中的分类不存在了（被删了），重置选中
+      // 恢复选中状态逻辑
       if (activeCatId && !safeData.find(c => c.id === activeCatId)) {
         setActiveCatId(null);
       }
-      // 如果没选中且有数据，默认选第一个
       if (safeData.length > 0 && !activeCatId) {
         setActiveCatId(safeData[0].id);
       }
     } catch (error) { 
       console.error("Fetch Data Error:", error);
+      // 如果接口报错，也可以作为一种未授权的信号，清空数据
       setCategories([]); 
     } finally { 
       setLoading(false); 
@@ -161,7 +184,15 @@ export default function ConfigPage() {
           <div className="space-y-4">
             <div className="bg-white/80 p-4 rounded-2xl border border-white/60 shadow-lg space-y-3">
               <h2 className="font-semibold flex items-center gap-2 text-slate-700"><LayoutGrid size={18} /> 新建分类</h2>
-              <input type="text" placeholder="名称" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-slate-50 border-none outline-none focus:ring-2 focus:ring-blue-100" />
+              <input 
+                id="category-name" 
+                name="category-name" 
+                type="text" 
+                placeholder="名称" 
+                value={newCatName} 
+                onChange={(e) => setNewCatName(e.target.value)} 
+                className="w-full px-3 py-2 rounded-lg bg-slate-50 border-none outline-none focus:ring-2 focus:ring-blue-100" 
+              />
               <div className="flex gap-2">
                 <input type="text" placeholder="图标URL" value={newCatIcon} onChange={(e) => setNewCatIcon(e.target.value)} className="flex-1 px-3 py-2 rounded-lg bg-slate-50 border-none outline-none text-sm" />
                 <label className="cursor-pointer p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">
@@ -199,9 +230,9 @@ export default function ConfigPage() {
                 <div className="bg-white/80 p-6 rounded-2xl border border-white/60 shadow-lg space-y-4">
                   <h2 className="font-semibold flex items-center gap-2 text-slate-700"><Plus size={18} /> 添加站点</h2>
                   <div className="grid grid-cols-2 gap-3">
-                    <input type="text" placeholder="名称" value={newSite.name} onChange={(e) => setNewSite({...newSite, name: e.target.value})} className="px-3 py-2 rounded-lg bg-slate-50 border-none outline-none focus:ring-2 focus:ring-blue-100" />
-                    <input type="text" placeholder="链接" value={newSite.url} onChange={(e) => setNewSite({...newSite, url: e.target.value})} className="px-3 py-2 rounded-lg bg-slate-50 border-none outline-none focus:ring-2 focus:ring-blue-100" />
-                    <input type="text" placeholder="描述" value={newSite.desc} onChange={(e) => setNewSite({...newSite, desc: e.target.value})} className="px-3 py-2 rounded-lg bg-slate-50 border-none outline-none focus:ring-2 focus:ring-blue-100" />
+                    <input id="site-name" name="site-name" type="text" placeholder="名称" value={newSite.name} onChange={(e) => setNewSite({...newSite, name: e.target.value})} className="px-3 py-2 rounded-lg bg-slate-50 border-none outline-none focus:ring-2 focus:ring-blue-100" />
+                    <input id="site-url" name="site-url" type="text" placeholder="链接" value={newSite.url} onChange={(e) => setNewSite({...newSite, url: e.target.value})} className="px-3 py-2 rounded-lg bg-slate-50 border-none outline-none focus:ring-2 focus:ring-blue-100" />
+                    <input id="site-desc" name="site-desc" type="text" placeholder="描述" value={newSite.desc} onChange={(e) => setNewSite({...newSite, desc: e.target.value})} className="px-3 py-2 rounded-lg bg-slate-50 border-none outline-none focus:ring-2 focus:ring-blue-100" />
                     <div className="flex gap-2">
                         <input type="text" placeholder="图标" value={newSite.icon} onChange={(e) => setNewSite({...newSite, icon: e.target.value})} className="flex-1 px-3 py-2 rounded-lg bg-slate-50 border-none outline-none" />
                         <label className="cursor-pointer p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200">
@@ -209,7 +240,7 @@ export default function ConfigPage() {
                           <input type="file" className="hidden" accept="image/*" onChange={(e) => handleUpload(e, 'site')} />
                         </label>
                     </div>
-                    <input type="text" placeholder="标签 (逗号分隔)" value={newSite.tags} onChange={(e) => setNewSite({...newSite, tags: e.target.value})} className="col-span-2 px-3 py-2 rounded-lg bg-slate-50 border-none outline-none focus:ring-2 focus:ring-blue-100" />
+                    <input id="site-tags" name="site-tags" type="text" placeholder="标签 (逗号分隔)" value={newSite.tags} onChange={(e) => setNewSite({...newSite, tags: e.target.value})} className="col-span-2 px-3 py-2 rounded-lg bg-slate-50 border-none outline-none focus:ring-2 focus:ring-blue-100" />
                   </div>
                   {newSite.icon && (newSite.icon.startsWith('/') || newSite.icon.startsWith('http')) && (
                       <div className="text-xs text-green-600 flex items-center gap-2 bg-green-50 px-3 py-1 rounded-full w-fit">
